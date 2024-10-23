@@ -1,0 +1,86 @@
+;libcondrv.mac
+
+.nlist
+
+.ifndef libcondrv_mac
+        libcondrv_mac:=1
+
+
+* Include File -------------------------------- *
+
+.include doscall.mac
+.include iocscall.mac
+.nlist
+
+
+* Condrv Work --------------------------------- *
+
+.offset -28
+option_flag:  .ds.b 1
+.even
+wait_count:   .ds.w 1
+wait_init:    .ds.w 1
+syscall_adr:  .ds.l 1
+nul_string:   .ds.b 1
+winkey_flag:  .ds.b 1
+bufinp_addr:  .ds.l 1
+keybuf_len:   .ds.l 1
+keybuf_addr:  .ds.l 1
+condrv_mark:  .ds.l 1
+.fail $.ne.0
+key_init_entry:
+.text
+
+CONDRV_ID: .equ 'hmk*'
+
+option_f_bit:  .equ 0
+option_bg_bit: .equ 1
+option_j_bit:  .equ 7
+
+.offset -8
+paste_ptr: .ds.l 1
+buf_adr:   .ds.l 1
+keybuf_top:
+.fail $.ne.0
+.text
+
+
+* System Call --------------------------------- *
+
+COND_ONOFF:  .equ $0000
+COND_HOOK:   .equ $0020
+COND_UNHOOK: .equ $0021
+COND_LAST:   .equ $0022
+COND_STACK:  .equ $0023
+COND_LEVEL:  .equ $0024
+COND_GETVER: .equ -1  ;$ffff
+
+
+* Macro --------------------------------------- *
+
+SUPER_CALL: .macro
+  pea (@job,pc)
+  DOS _SUPER_JSR
+  addq.l #4,sp
+  rts
+  @job:
+.endm
+
+GET_WORK: .macro
+  movea.l ($400+_KEY_INIT*4),a0
+  cmpi.l #CONDRV_ID,(-4,a0)
+.endm
+
+SYSCALL: .macro call
+  movea.l (syscall_adr,a0),a0
+  moveq #call,d0
+  jsr (a0)
+.endm
+
+
+.endif
+
+.text
+.list
+
+* End of File --------------------------------- *
